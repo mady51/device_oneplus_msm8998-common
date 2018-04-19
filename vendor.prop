@@ -125,6 +125,9 @@ ro.am.reschedule_service=true
 sched.colocate.enable=1
 sys.games.gt.prof=1
 
+# OTG support
+persist.sys.oem.otg_support=true
+
 # QSEE
 persist.sys.qsee=yes
 
@@ -198,6 +201,3 @@ sys.usb.rmnet.func.name=gsi
 
 # Wi-Fi
 wifi.interface=wlan0
-
-# AoD
-persist.debug.force_burn_in=true
