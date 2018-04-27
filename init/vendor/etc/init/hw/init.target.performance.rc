@@ -6,12 +6,41 @@ on init
 
     write /sys/module/lpm_levels/parameters/sleep_disabled Y
 
+    write /dev/stune/foreground/schedtune.prefer_idle 1
+    write /dev/stune/top-app/schedtune.prefer_idle 1
+    write /dev/stune/top-app/schedtune.boost 10
+
+# For cpusets initialize for Silver Only first and then Silver + Gold
+# Silver Only configuration cannot work with 0-7
+on boot
+    write /dev/cpuset/top-app/cpus 0-7
+    write /dev/cpuset/foreground/cpus 0-7
+    write /dev/cpuset/foreground/boost/cpus 0-7
+    write /dev/cpuset/background/cpus 0-7
+    write /dev/cpuset/system-background/cpus 0-7
+
+# set default schedtune value for foreground/top-app (only affects EAS)
+    write /dev/stune/foreground/schedtune.prefer_idle 1
+    write /dev/stune/top-app/schedtune.prefer_idle 1
+    write /dev/stune/top-app/schedtune.boost 1
+
     # Add a cpuset for the camera daemon
     mkdir /dev/cpuset/camera-daemon 0750 cameraserver cameraserver
     write /dev/cpuset/camera-daemon/cpus 0
     write /dev/cpuset/camera-daemon/mems 0
     chown cameraserver cameraserver /dev/cpuset/camera-daemon/tasks
     chmod 0660 /dev/cpuset/camera-daemon/tasks
+
+    # Set I/O Scheduler tweaks
+    write /sys/block/sda/queue/scheduler maple
+    write /sys/block/sda/queue/read_ahead_kb 512
+    write /sys/block/sda/queue/iosched/writes_starved 4
+    write /sys/block/sda/queue/iosched/fifo_batch 16
+    write /sys/block/sda/queue/iosched/sync_read_expire 350
+    write /sys/block/sda/queue/iosched/sync_write_expire 550
+    write /sys/block/sda/queue/iosched/async_read_expire 250
+    write /sys/block/sda/queue/iosched/async_write_expire 450
+    write /sys/block/sda/queue/iosched/sleep_latency_multiple 10
 
     # Sound settings
     write /sys/kernel/sound_control/earpiece_gain 10
@@ -29,9 +58,32 @@ on charger
 
     write /sys/module/lpm_levels/parameters/sleep_disabled N
 
+    # online cpu 0 and set governor powersave
+    write /sys/devices/system/cpu/cpu0/online 1
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor powersave
+
+    # offline remaining cores
+    write /sys/devices/system/cpu/cpu1/online 0
+    write /sys/devices/system/cpu/cpu2/online 0
+    write /sys/devices/system/cpu/cpu3/online 0
+    write /sys/devices/system/cpu/cpu4/online 0
+    write /sys/devices/system/cpu/cpu5/online 0
+    write /sys/devices/system/cpu/cpu6/online 0
+    write /sys/devices/system/cpu/cpu7/online 0
+
+    # disable thermal core control
+    write /sys/module/msm_thermal/core_control/enabled 0
 
 on late-fs
 on property:sys.boot_completed=1
+    # Disable boot time fs tuning
+    write /sys/block/sde/queue/read_ahead_kb 1024
+    write /sys/block/sde/queue/nr_requests 128
+    write /sys/block/sde/queue/iostats 1
+    write /sys/block/sda/queue/read_ahead_kb 512
+    write /sys/block/sda/queue/nr_requests 128
+    write /sys/block/sda/queue/iostats 1
+
     # Enable UFS powersaving
     write /sys/devices/soc/1da4000.ufshc/clkscale_enable 1
     write /sys/devices/soc/1da4000.ufshc/clkgate_enable 1
@@ -40,16 +92,26 @@ on property:sys.boot_completed=1
     # disable thermal core control until CPU is configured
     write /sys/module/msm_thermal/core_control/enabled 0
 
+    # online clusters
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "schedutil"
+    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us 500
+    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us 20000
+    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/iowait_boost_enable 1
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 300000
+
+    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor "schedutil"
+    write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/up_rate_limit_us 500
+    write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/down_rate_limit_us 20000
+    write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/iowait_boost_enable 1
+    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq 300000
+
+    # CPU is configured, re-enable thermal core control
+    write /sys/module/msm_thermal/core_control/enabled 1
 
     # Enable input boost configuration
-    write /sys/module/cpu_boost/parameters/input_boost_ms 400
     write /sys/module/cpu_boost/parameters/input_boost_freq "0:1036800"
-
-    # Set I/O Scheduler tweaks
-    write /sys/block/mmcblk0/queue/scheduler deadline
-
-     # Set Vibration 
-    write /sys/class/timed_output/vibrator/vtg_level 2900
+    write /sys/module/cpu_boost/parameters/dynamic_stune_boost 15
+    write /sys/module/cpu_boost/parameters/input_boost_ms 500
 
     # Enable bus-dcvs
     write /sys/class/devfreq/soc:qcom,cpubw/governor "bw_hwmon"
@@ -94,7 +156,19 @@ on property:sys.boot_completed=1
     write /sys/module/lpm_levels/parameters/sleep_disabled N
 
     # Setup cpusets
+    write /dev/cpuset/top-app/cpus 0-7
+    write /dev/cpuset/foreground/boost/cpus 0-3,6-7
+    write /dev/cpuset/foreground/cpus 0-3,6-7
+    write /dev/cpuset/background/cpus 0-1
+    write /dev/cpuset/system-background/cpus 0-3
     write /dev/cpuset/camera-daemon/cpus 0-3
+
+    # Disable sched boost
+    write /proc/sys/kernel/sched_boost 0
+    chmod 0444 /proc/sys/kernel/sched_boost
+
+    # Enable Adaptive LMK
+    write /sys/module/lowmemorykiller/parameters/minfree "18432,23040,27648,32256,55296,80640"
 
     # Is IOP even still a thing?
     start iop
