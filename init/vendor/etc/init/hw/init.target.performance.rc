@@ -41,6 +41,15 @@ on property:sys.boot_completed=1
     write /sys/module/msm_thermal/core_control/enabled 0
 
 
+    # Enable input boost configuration
+    write /sys/module/cpu_boost/parameters/input_boost_ms 400
+    write /sys/module/cpu_boost/parameters/input_boost_freq "0:1036800"
+
+    # Set I/O Scheduler tweaks
+    write /sys/block/mmcblk0/queue/scheduler deadline
+
+     # Set Vibration 
+    write /sys/class/timed_output/vibrator/vtg_level 2900
 
     # Enable bus-dcvs
     write /sys/class/devfreq/soc:qcom,cpubw/governor "bw_hwmon"
