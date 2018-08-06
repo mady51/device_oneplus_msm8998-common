@@ -37,10 +37,10 @@
 #define ONDEMAND_GOVERNOR "ondemand"
 #define INTERACTIVE_GOVERNOR "interactive"
 #define SCHEDUTIL_GOVERNOR "schedutil"
+#define SCHEDALUCARD_GOVERNOR "schedalucard"
+#define ELECTROUTIL_GOVERNOR "electroutil"
 #define SCHED_GOVERNOR "sched"
-
 #define MSMDCVS_GOVERNOR "msm-dcvs"
-#define SCHED_GOVERNOR "sched"
 
 #define HINT_HANDLED (0)
 #define HINT_NONE (-1)
