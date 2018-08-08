@@ -32,15 +32,7 @@ on boot
     chmod 0660 /dev/cpuset/camera-daemon/tasks
 
     # Set I/O Scheduler tweaks
-    write /sys/block/sda/queue/scheduler maple
-    write /sys/block/sda/queue/read_ahead_kb 512
-    write /sys/block/sda/queue/iosched/writes_starved 4
-    write /sys/block/sda/queue/iosched/fifo_batch 16
-    write /sys/block/sda/queue/iosched/sync_read_expire 350
-    write /sys/block/sda/queue/iosched/sync_write_expire 550
-    write /sys/block/sda/queue/iosched/async_read_expire 250
-    write /sys/block/sda/queue/iosched/async_write_expire 450
-    write /sys/block/sda/queue/iosched/sleep_latency_multiple 10
+    write /sys/block/sda/queue/scheduler tripndroid
 
     # Sound settings
     write /sys/kernel/sound_control/earpiece_gain 10
@@ -50,15 +42,15 @@ on boot
     # Don't treat storage as rotational
     write /sys/block/sda/queue/rotational 0
 
-on late-fs
 on property:sys.boot_completed=1
-    # Disable boot time fs tuning
-    write /sys/block/sde/queue/read_ahead_kb 1024
-    write /sys/block/sde/queue/nr_requests 128
-    write /sys/block/sde/queue/iostats 1
-    write /sys/block/sda/queue/read_ahead_kb 512
-    write /sys/block/sda/queue/nr_requests 128
-    write /sys/block/sda/queue/iostats 1
+
+    # Enable boot time fs tuning (ro like system is on sda, rw like userdata is on sde)
+    write /sys/block/sda/queue/iostats 0
+    write /sys/block/sda/queue/nr_requests 256
+    write /sys/block/sda/queue/read_ahead_kb 2048
+    write /sys/block/sde/queue/iostats 0
+    write /sys/block/sde/queue/nr_requests 256
+    write /sys/block/sda/queue/read_ahead_kb 2048
 
     # Enable UFS powersaving
     write /sys/devices/soc/1da4000.ufshc/clkscale_enable 1
@@ -69,17 +61,8 @@ on property:sys.boot_completed=1
     write /sys/module/msm_thermal/core_control/enabled 0
 
     # online clusters
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "schedutil"
-    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us 500
-    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us 20000
-    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/iowait_boost_enable 1
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 300000
-
-    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor "schedutil"
-    write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/up_rate_limit_us 500
-    write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/down_rate_limit_us 20000
-    write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/iowait_boost_enable 1
-    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq 300000
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "helix_schedutil"
+    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor "helix_schedutil"
 
     # CPU is configured, re-enable thermal core control
     write /sys/module/msm_thermal/core_control/enabled 1
@@ -104,17 +87,6 @@ on property:sys.boot_completed=1
     write /sys/class/devfreq/soc:qcom,cpubw/bw_hwmon/guard_band_mbps 0
     write /sys/class/devfreq/soc:qcom,cpubw/bw_hwmon/up_scale 250
     write /sys/class/devfreq/soc:qcom,cpubw/bw_hwmon/idle_mbps 1600
-
-    # Configure memory latencies
-    write /sys/class/devfreq/soc:qcom,memlat-cpu0/governor "mem_latency"
-    write /sys/class/devfreq/soc:qcom,memlat-cpu0/polling_interval 10
-    write /sys/class/devfreq/soc:qcom,memlat-cpu0/mem_latency/ratio_ceil 400
-
-    write /sys/class/devfreq/soc:qcom,memlat-cpu4/governor "mem_latency"
-    write /sys/class/devfreq/soc:qcom,memlat-cpu4/polling_interval 10
-    write /sys/class/devfreq/soc:qcom,memlat-cpu4/mem_latency/ratio_ceil 400
-
-    write /sys/class/devfreq/soc:qcom,mincpubw/governor "cpufreq"
 
     # Setup power retention
     write /sys/module/lpm_levels/system/pwr/cpu0/ret/idle_enabled N
