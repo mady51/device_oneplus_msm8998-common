@@ -201,3 +201,6 @@ sys.usb.rmnet.func.name=gsi
 
 # Wi-Fi
 wifi.interface=wlan0
+
+# Vendor patch level
+ro.vendor.patch.level=OxygenOS_5.1.4
