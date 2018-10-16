@@ -267,3 +267,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # Wi-Fi
 PRODUCT_PROPERTY_OVERRIDES += \
     wifi.interface=wlan0
+
+# HAL1 Packages
+camera.hal1.packagelist=com.skype.raider,com.google.android.talk
