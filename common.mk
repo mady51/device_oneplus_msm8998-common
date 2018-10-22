@@ -178,10 +178,6 @@ PRODUCT_PACKAGES += \
     vendor.display.config@1.0 \
     vendor.display.config@1.0_vendor
 
-# Doze
-PRODUCT_PACKAGES += \
-    OneplusDoze
-
 # DRM
 PRODUCT_PACKAGES += \
     android.hardware.drm@1.0-impl \
@@ -329,10 +325,6 @@ PRODUCT_PACKAGES += \
 # Privapp Whitelist
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/privapp-permissions-qti.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/privapp-permissions-qti.xml
-
-# Pocketmode
-PRODUCT_PACKAGES += \
-    OneplusPocketMode
 
 # Power
 PRODUCT_PACKAGES += \
