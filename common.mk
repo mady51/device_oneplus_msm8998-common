@@ -140,7 +140,7 @@ PRODUCT_PACKAGES += \
     android.hardware.camera.provider@2.4-service \
     camera.device@1.0-impl \
     camera.device@3.2-impl \
-    Snap
+    SnapdragonCamera2
 
 PRODUCT_PACKAGES += \
     vendor.qti.hardware.camera.device@1.0 \
@@ -180,11 +180,7 @@ PRODUCT_PACKAGES += \
 
 # OneplusShit
 PRODUCT_PACKAGES += \
-    OneplusShit
-
-# SnapCam
-PRODUCT_PACKAGES += \
-    SnapdragonCamera2	
+    OneplusShit    
 
 # DRM
 PRODUCT_PACKAGES += \
